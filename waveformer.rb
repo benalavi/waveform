@@ -1,11 +1,3 @@
-# ideas and code influenced by:
-# 
-# http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
-# http://github.com/pangdudu/rude/blob/master/lib/waveform_narray_testing.rb
-# http://stackoverflow.com/questions/1931952/asp-net-create-waveform-image-from-mp3
-# http://codeidol.com/java/swing/Audio/Build-an-Audio-Waveform-Display
-# 
-
 require "rubygems"
 require "ruby-audio"
 require "fileutils"
