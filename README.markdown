@@ -14,13 +14,13 @@ Requirements
 Some pretty heavy requirements:
 
 * ruby 1.8 (see note below)
-* icanhasaudio -- for converting MP3 to WAV
-  * i couldn't get icanhasaudio to compile using ruby 1.9.1, so for now this requires ruby 1.8
 * ruby-audio
   * the gem version, *not* the old outdated library listed on RAA
   * http://github.com/warhammerkid/ruby-audio
 * rmagick
   * ...and therefore ImageMagick or GraphicsMagick
+* ffmpeg
+  * just for decoding mp3 to wav, could probably be replaced by something more lightweight...
   
 References
 ==========

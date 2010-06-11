@@ -1,5 +1,12 @@
+# ideas and code influenced by:
+# 
+# http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
+# http://github.com/pangdudu/rude/blob/master/lib/waveform_narray_testing.rb
+# http://stackoverflow.com/questions/1931952/asp-net-create-waveform-image-from-mp3
+# http://codeidol.com/java/swing/Audio/Build-an-Audio-Waveform-Display
+# 
+
 require "rubygems"
-require "icanhasaudio"
 require "ruby-audio"
 require "fileutils"
 require "rmagick"
@@ -93,12 +100,28 @@ def draw(samples, filename)
   canvas.transparent("#000000", Magick::TransparentOpacity).write(filename)
 end
 
-# decode MP3 to WAV ===========================================================
+# decode given mp3 to a wav file, returns true if the decode succeeded or false
+# otherwise
+def mp3_to_wav(mp3, wav)
+  FileUtils.rm(wav) if File.exists?(wav)
+  
+  system %Q{ffmpeg -i "#{ARGV[0]}" -f wav "#{wav}" > /dev/null 2>&1}
+  
+  File.exists?(wav)
+end
+
+# =============================================================================
+
+time = Time.now
 wave = File.join(File.dirname(__FILE__), "temp.wav")
-FileUtils.rm(wave) if File.exists?(wave)
 
-reader = Audio::MPEG::Decoder.new
-reader.decode(File.open(ARGV[0], "rb"), File.open(wave, "wb"))
+puts "Decoding MP3..."
+raise "Unable to decode source MP3 #{ARGV[0]}, quitting" unless mp3_to_wav(ARGV[0], wave)
 
-draw(frames(wave, Width, :peak), ARGV[1])
+puts "Analyzing waveform..."
+frames = frames(wave, Width, :peak)
 
+puts "Drawing waveform graph..."
+draw(frames, ARGV[1])
+
+puts "Generated #{ARGV[1]} in #{(Time.now - time)}s"
