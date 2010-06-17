@@ -13,7 +13,6 @@ Requirements
 
 Some pretty heavy requirements:
 
-* ruby 1.8 (see note below)
 * ruby-audio
   * the gem version, *not* the old outdated library listed on RAA
   * http://github.com/warhammerkid/ruby-audio
