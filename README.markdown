@@ -1,12 +1,12 @@
-Waveformer
-==========
+Waveform
+========
 
 Generates waveform images from MP3 files. Combine it with jPlayer to make a soundcloud.com style MP3 player.
 
 Usage
 =====
 
-    $ ruby waveformer.rb song.mp3 waveform.png
+    $ ruby waveform.rb song.mp3 waveform.png
 
 Requirements
 ============
