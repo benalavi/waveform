@@ -137,8 +137,6 @@ class Waveform
         image.line(x, (zero - amplitude).round, x, (zero + amplitude).round, color)
       end
       
-      puts samples.inspect
-      
       # Simple transparency masking, it just loops over every pixel and makes
       # ones which match the transparency mask color completely clear.
       if transparent
