@@ -1,0 +1,58 @@
+#!/usr/bin/env ruby
+require "waveform"
+require "optparse"
+
+options = Waveform::DefaultOptions
+optparse = OptionParser.new do |o|
+  o.banner = "Usage: waveform [options] source_audio [ouput.png]"
+
+  o.on("-W", "--width WIDTH", "Width (in pixels) of generated waveform image -- Default #{Waveform::DefaultOptions[:width]}.") do |width|
+    options[:width] = width.to_i
+  end
+
+  o.on("-H", "--height HEIGHT", "Height (in pixels) of generated waveform image -- Default #{Waveform::DefaultOptions[:height]}.") do |height|
+    options[:height] = height.to_i
+  end
+
+  o.on("-c", "--color COLOR", "Color (hex code) to draw the waveform. Can also pass 'transparent' to cut it out of the background -- Default #{Waveform::DefaultOptions[:color]}.") do |color|
+    if color == "transparent"
+      options[:color] = :transparent
+    else
+      options[:color] = color.match(/#.*/) ? color : "##{color}"
+    end
+  end
+
+  o.on("-b", "--background COLOR", "Background color (hex code) to draw waveform on -- Default #{Waveform::DefaultOptions[:background_color]}.") do |color|
+    if color == "transparent"
+      options[:background_color] = :transparent
+    else
+      options[:background_color] = color.match(/#.*/) ? color : "##{color}"
+    end
+  end
+
+  o.on("-m", "--method METHOD", "Wave analyzation method (can be 'peak' or 'rms') -- Default '#{Waveform::DefaultOptions[:method]}'.") do |method|
+    options[:method] = method.to_sym
+  end
+
+  options[:quiet] = false
+  o.on("-q", "--quiet", "Don't print anything out when generating waveform") do
+    options[:quiet] = true
+  end
+
+  o.on("-h", "--help", "Display this screen") do
+    puts o
+    exit
+  end
+end
+
+optparse.parse!
+
+begin
+  Waveform.new(ARGV[0], options[:quiet] ? nil : $stdout).generate(ARGV[1] || "waveform.png", options)
+rescue Waveform::ArgumentError => e
+  puts e.message + "\n\n"
+  puts optparse
+rescue Waveform::RuntimeError => e
+  puts e.message
+end
+

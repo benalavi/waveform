@@ -1,0 +1,7 @@
+Vagrantfile
+.vagrant
+vagrant/*
+*.m4a
+*.mp3
+*.wav
+*.png
