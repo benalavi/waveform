@@ -6,6 +6,26 @@ combine it with jPlayer to make a soundcloud.com style MP3 player. It also
 comes with a handy CLI you can use to generate waveform images on the command
 line.
 
+Installation
+============
+
+Build libsndfile (http://www.mega-nerd.com/libsndfile/), or install it via `apt`
+(`sudo apt-get install libsndfile1-dev`), or `libsndfile` in macports.
+
+    $ sudo gem install waveform
+
+You might also want to, but don't have to:
+
+    $ sudo gem install oily_png
+    
+to make things a bit faster, and:
+
+    $ sudo apt-get install ffmpeg
+    
+if you want Waveform to convert non WAV audio for you.
+
+_See Requirements below for more info_
+
 CLI Usage
 =========
 
