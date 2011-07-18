@@ -88,19 +88,6 @@ format converters to convert your files to WAV before generating waveforms.
 
 Or you could be all retro and use WAV audio for everything in the first place.
 
-Some notes
-==========
-
-I threw the original version of this together in a day, and then made this
-second version in another couple. During those days I committed a cardinal sin
-and didn't write any tests, because decoding sound files and drawing pictures
-of them is more fun than writing tests. `ChunkyPNG` is cool though and will let
-you read raw pixel data, so it should be pretty easy to write some tests that
-actually read the pixel data of a waveform generated from a known source and
-ensure everything went according to plan. I'll do that later.
-
-Also, please refactor this/make it faster.
-
 References
 ==========
 
