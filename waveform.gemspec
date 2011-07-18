@@ -23,4 +23,6 @@ Gem::Specification.new do |s|
 
   s.add_dependency "ruby-audio"
   s.add_dependency "chunky_png"
+  
+  s.add_development_dependency "contest"
 end

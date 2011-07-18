@@ -7,7 +7,7 @@ rescue LoadError
 end
 
 class Waveform
-  VERSION = "0.0.1"
+  VERSION = "0.0.2"
   
   DefaultOptions = {
     :method => :peak,

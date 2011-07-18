@@ -1,4 +1,3 @@
-$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), "..", "contest-0.1.2", "lib")))
 require "contest"
 require "fileutils"
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "waveform"))
@@ -19,12 +18,11 @@ class WaveformTest < Test::Unit::TestCase
   end
   
   puts "Removing existing testing artifacts..."
-  Dir[output(".") + "/*.*"].each do |file|
-    FileUtils.rm(file)
-  end
-  sample_wav = File.join(File.dirname(__FILE__), "sample.wav")
+  FileUtils.rm_rf(output("")) if File.exists?(output(""))
+  FileUtils.mkdir(output(""))
+  sample_wav = fixture("sample_mp3.wav")
   FileUtils.rm(sample_wav) if File.exists?(sample_wav)
-    
+  
   context "generating waveform" do
     setup do
       @waveform = Waveform.new(fixture("sample.wav"))
@@ -35,14 +33,14 @@ class WaveformTest < Test::Unit::TestCase
       assert File.exists?(output("waveform_from_audio_source.png"))
       
       image = open_png(output("waveform_from_audio_source.png"))
-      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[800, 140]
+      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
       assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
     end
     
     should "convert non-wav audio source before generation" do
-      Waveform.new(fixture("sample_m4a.m4a")).generate(output("from_m4a.png"))
+      Waveform.new(fixture("sample_mp3.mp3")).generate(output("from_mp3.png"))
 
-      assert File.exists?(output("from_m4a.png"))
+      assert File.exists?(output("from_mp3.png"))
     end
 
     should "log to given io" do
@@ -59,9 +57,9 @@ class WaveformTest < Test::Unit::TestCase
       rms = open_png(output("rms.png"))
       peak = open_png(output("peak.png"))
       
-      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), peak[749, 98]
-      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), rms[749, 98]
-      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), rms[800, 140]
+      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), peak[44, 43]
+      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), rms[44, 43]
+      assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), rms[60, 120]
     end
     
     should "generate waveform 900px wide" do
@@ -96,7 +94,7 @@ class WaveformTest < Test::Unit::TestCase
       @waveform.generate(output("color-#000000.png"), :color => "#000000")
       image = open_png(output("color-#000000.png"))
       
-      assert_equal ChunkyPNG::Color.from_hex("#000000"), image[800, 140]
+      assert_equal ChunkyPNG::Color.from_hex("#000000"), image[60, 120]
     end
     
     should "generate waveform on red background color with transparent foreground cut-out" do
@@ -104,7 +102,7 @@ class WaveformTest < Test::Unit::TestCase
       image = open_png(output("background_color-#ff0000+color-transparent.png"))
       
       assert_equal ChunkyPNG::Color.from_hex("#ff0000"), image[0, 0]
-      assert_equal ChunkyPNG::Color::TRANSPARENT, image[800, 140]
+      assert_equal ChunkyPNG::Color::TRANSPARENT, image[60, 120]
     end
     
     # Bright green is our transparency mask color, so this test ensures that we
@@ -115,7 +113,7 @@ class WaveformTest < Test::Unit::TestCase
       image = open_png(output("background_color-#00ff00+color-transparent.png"))
       
       assert_equal ChunkyPNG::Color.from_hex("#00ff00"), image[0, 0]
-      assert_equal ChunkyPNG::Color::TRANSPARENT, image[800, 140]
+      assert_equal ChunkyPNG::Color::TRANSPARENT, image[60, 120]
     end
   end
 end

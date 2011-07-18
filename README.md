@@ -88,6 +88,16 @@ format converters to convert your files to WAV before generating waveforms.
 
 Or you could be all retro and use WAV audio for everything in the first place.
 
+Tests
+=====
+
+Tests require `contest` gem & `ffmpeg` (to test conversion), run via:
+
+    $ rake
+
+Sample sound file is in Public Domain from soundbible.com.
+<http://soundbible.com/1598-Electronic-Chime.html>
+
 References
 ==========
 
