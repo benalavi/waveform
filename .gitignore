@@ -5,3 +5,4 @@ vagrant/*
 *.mp3
 *.wav
 *.png
+test/output/*

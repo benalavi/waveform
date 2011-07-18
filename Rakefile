@@ -1,5 +1,5 @@
 task :default => :test
 
 task :test do
-  system "cutest test/*.rb"
+  system "ruby test/*.rb"
 end
