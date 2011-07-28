@@ -115,5 +115,39 @@ class WaveformTest < Test::Unit::TestCase
       assert_equal ChunkyPNG::Color.from_hex("#00ff00"), image[0, 0]
       assert_equal ChunkyPNG::Color::TRANSPARENT, image[60, 120]
     end
+
+    context "with existing PNG files" do
+      setup do
+        @existing = output("existing.png")
+        FileUtils.touch @existing
+      end
+
+      should "generate waveform if :force is true and PNG exists" do
+        @waveform.generate(@existing, :force => true)
+      end
+
+      should "raise an exception if PNG exists and :force is false" do
+        assert_raises Waveform::RuntimeError do
+          @waveform.generate(@existing, :force => false)
+        end
+      end
+    end
+
+    context "with existing WAV files" do
+      setup do
+        @existing = output("existing.wav")
+        FileUtils.touch @existing
+      end
+
+      should "generate waveform if :force is true and WAV exists" do
+        @waveform.generate(@existing, :force => true)
+      end
+
+      should "raise an exception if WAV exists and :force is false" do
+        assert_raises Waveform::RuntimeError do
+          @waveform.generate(@existing, :force => false)
+        end
+      end
+    end
   end
 end

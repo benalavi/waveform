@@ -39,6 +39,11 @@ optparse = OptionParser.new do |o|
     options[:quiet] = true
   end
 
+  options[:force] = false
+  o.on("-F", "--force", "Force generationg of waveform if file exists") do
+    options[:force] = true
+  end
+
   o.on("-h", "--help", "Display this screen") do
     puts o
     exit
