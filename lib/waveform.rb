@@ -14,7 +14,8 @@ class Waveform
     :width => 1800,
     :height => 280,
     :background_color => "#666666",
-    :color => "#00ccff"
+    :color => "#00ccff",
+    :force => false
   }
   
   TransparencyMask = "#00ff00"
@@ -47,10 +48,11 @@ class Waveform
     raise RuntimeError.new("Source audio file '#{audio}' not found.") unless File.exist?(audio)
     
     @log = Log.new(log)
+    @log.start!
+    @source = audio
 
     if File.extname(audio) != ".wav"
       @audio = audio.sub /(.+)\.(.+)/, "\\1.wav"
-      raise RuntimeError.new("Unable to decode source '#{audio}' to WAV. Do you have ffmpeg installed with an appropriate decoder for your source file?") unless to_wav(audio, @audio)
     else
       @audio = audio
     end
@@ -85,21 +87,33 @@ class Waveform
   #     color background to achieve a "cutout" effect).
   #     Default is #00ccff (cyan-ish).
   #
+  #   :force => Force generation of waveform, overwriting WAV or PNG file.
+  #
   # Example:
   #   waveform = Waveform.new("mp3s/Kickstart My Heart.mp3")
-  # 
+  #
   #   waveform.generate("waves/Kickstart My Heart.png")
   #   waveform.generate("waves/Kickstart My Heart.png", :method => :rms)
   #   waveform.generate("waves/Kickstart My Heart.png", :color => "#ff00ff")
-  # 
+  #
   def generate(filename, options={})
     raise ArgumentError.new("No destination filename given for waveform") unless filename
-    raise RuntimeError.new("Destination file #{filename} exists") if File.exists?(filename)
+
+    if File.exists?(filename)
+      if options[:force]
+        @log.out("Output file #{filename} encountered. Removing.")
+        File.unlink(filename)
+      else
+        raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+      end
+    end
+
+    unless File.extname(@source) == ".wav"
+      raise RuntimeError.new("Unable to decode source \'#{audio}\' to WAV. Do you have ffmpeg installed with an appropriate decoder for your source file?") unless to_wav(@source, @audio, options[:force])
+    end
 
     options = DefaultOptions.merge(options)
-    
-    @log.start!
-    
+
     # Frames gives the amplitudes for each channel, for our waveform we're
     # saying the "visual" amplitude is the average of the amplitude across all
     # the channels. This might be a little weird w/ the "peak" method if the
@@ -181,12 +195,18 @@ class Waveform
   
   # Decode audio to a wav file, returns true if the decode succeeded or false
   # otherwise.
-  def to_wav(src, dest)
-    @log.start!
+  def to_wav(src, dest, force=false)
     @log.out("Decoding source audio '#{src}' to WAV...")
 
-    raise RuntimeError.new("Destination WAV file '#{dest}' exists!") if File.exists?(dest)
-    
+    if File.exists?(dest)
+      if force
+        @log.out("Removing destination WAV file '#{dest}'.")
+        File.unlink(dest)
+      else
+        raise RuntimeError.new("Destination WAV file '#{dest}' exists! Use --force if you want to automatically remove it.")
+      end
+    end
+
     system %Q{ffmpeg -i "#{src}" -f wav "#{dest}" > /dev/null 2>&1}
     @log.done!
     
