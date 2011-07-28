@@ -46,7 +46,8 @@ There are some nifty options you can supply to switch things up:
 There are also some less-nifty options:
 
     -q will generate your waveform without printing out a bunch of stuff.
-    -h will prit out a help screen with all this info.
+    -h will print out a help screen with all this info.
+    -F will automatically remove existing PNG or WAV files.
 
 Generating a small waveform "cut out" of a white background is pretty useful,
 then you can overlay it on a web-gradient on the website for your new startup
