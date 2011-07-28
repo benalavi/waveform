@@ -116,6 +116,27 @@ class WaveformTest < Test::Unit::TestCase
       assert_equal ChunkyPNG::Color::TRANSPARENT, image[60, 120]
     end
 
+    # Not sure how to best test this as it's totally dependent on the ruby and
+    # system GC when the tempfiles are removed (as we're not explicitly
+    # unlinking them).
+    # should "use a tempfile when generating a temporary wav" do
+    #   tempfiles = Dir[File.join(Dir.tmpdir(), "sample_mp3*")].size
+    #   Waveform.new(fixture("sample_mp3.mp3")).generate(output("cleanup_temporary_wav.png"))
+    #   assert_equal tempfiles + 1, Dir[File.join(Dir.tmpdir(), "sample_mp3*")].size
+    # end
+    
+    should "not delete source wav file if one was given" do
+      assert File.exists?(fixture("sample.wav"))
+      Waveform.new(fixture("sample.wav")).generate(output("keep_source_wav.png"))
+      assert File.exists?(fixture("sample.wav"))
+    end
+    
+    should "raise an error if unable to decode to wav" do
+      assert_raise(Waveform::RuntimeError) do
+        Waveform.new(fixture("sample.txt")).generate(output("shouldnt_exist.png"))
+      end
+    end
+
     context "with existing PNG files" do
       setup do
         @existing = output("existing.png")

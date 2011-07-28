@@ -6,3 +6,4 @@ vagrant/*
 *.wav
 *.png
 test/output/*
+.DS_Store
