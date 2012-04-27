@@ -61,7 +61,19 @@ class WaveformTest < Test::Unit::TestCase
       assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), rms[44, 43]
       assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), rms[60, 120]
     end
-    
+
+    should 'generate waveform from a mono file' do
+      Waveform.new(fixture("mono_sample.wav")).generate(output("mono.png"))
+
+      assert File.exists?(output("mono.png"))
+    end
+
+    should 'generate waveform from a mono file using rms' do
+      Waveform.new(fixture("mono_sample.wav")).generate(output("mono_rms.png"), :method => :rms)
+
+      assert File.exists?(output("mono.png"))
+    end
+
     should "generate waveform 900px wide" do
       @waveform.generate(output("width-900.png"), :width => 900)
       image = open_png(output("width-900.png"))
