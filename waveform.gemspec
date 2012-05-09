@@ -1,4 +1,4 @@
-require "./lib/waveform"
+require "./lib/waveform/version"
 
 Gem::Specification.new do |s|
   s.name              = "waveform"
