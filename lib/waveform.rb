@@ -187,7 +187,7 @@ class Waveform
       frames_read       = 0
       frames_per_sample = (snd.info.frames.to_f / width.to_f).to_i
       sample            = RubyAudio::Buffer.new("float", frames_per_sample, snd.info.channels)
-
+      
       @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
         while(frames_read = snd.read(sample)) > 0
           frames << send(method, sample, snd.info.channels)
@@ -208,7 +208,7 @@ class Waveform
     
     @log.timed("Decoding source audio '#{src}' to WAV...") do    
       wav = Tempfile.new(File.basename(src))
-      system %Q{ffmpeg -y -i "#{src}" -f wav "#{wav.path}" > /dev/null 2>&1}
+      system %Q{ffmpeg -y -i "#{src}" -f wav -ac 1 -ar 11000 "#{wav.path}" > /dev/null 2>&1}
     end
     
     return wav.size == 0 ? false : wav
@@ -244,9 +244,15 @@ class Waveform
   # the analyzation speed (maybe).
   def channel_peak(frames, channel=0)
     peak = 0.0
+    
     frames.each do |frame|
       next if frame.nil?
-      peak = frame[channel].abs if frame[channel].abs > peak
+      
+      if frame.is_a? Array
+        peak = frame[channel].abs if frame[channel].abs > peak
+      else
+        peak = frame.abs if frame.abs > peak
+      end
     end
     peak
   end
