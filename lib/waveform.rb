@@ -110,15 +110,19 @@ class Waveform
   #
   def generate(filename, options={})
     raise ArgumentError.new("No destination filename given for waveform") unless filename
-
-    if File.exists?(filename)
-      if options[:force]
-        @log.out("Output file #{filename} encountered. Removing.")
-        File.unlink(filename)
-      else
-        raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+    
+    if !filename.is_a?(String) && filename.respond_to?(:path)
+      filename = filename.path
+    else
+      if File.exists?(filename)
+        if options[:force]
+          @log.out("Output file #{filename} encountered. Removing.")
+          File.unlink(filename)
+        else
+          raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+        end
       end
-    end    
+    end
 
     options = DefaultOptions.merge(options)
 
@@ -187,7 +191,7 @@ class Waveform
       frames_read       = 0
       frames_per_sample = (snd.info.frames.to_f / width.to_f).to_i
       sample            = RubyAudio::Buffer.new("float", frames_per_sample, snd.info.channels)
-
+      
       @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
         while(frames_read = snd.read(sample)) > 0
           frames << send(method, sample, snd.info.channels)
@@ -208,7 +212,7 @@ class Waveform
     
     @log.timed("Decoding source audio '#{src}' to WAV...") do    
       wav = Tempfile.new(File.basename(src))
-      system %Q{ffmpeg -y -i "#{src}" -f wav "#{wav.path}" > /dev/null 2>&1}
+      system %Q{ffmpeg -y -i "#{src}" -f wav -ac 1 -ar 11000 "#{wav.path}" > /dev/null 2>&1}
     end
     
     return wav.size == 0 ? false : wav
@@ -244,9 +248,15 @@ class Waveform
   # the analyzation speed (maybe).
   def channel_peak(frames, channel=0)
     peak = 0.0
+    
     frames.each do |frame|
       next if frame.nil?
-      peak = frame[channel].abs if frame[channel].abs > peak
+      
+      if frame.is_a? Array
+        peak = frame[channel].abs if frame[channel].abs > peak
+      else
+        peak = frame.abs if frame.abs > peak
+      end
     end
     peak
   end
