@@ -110,15 +110,19 @@ class Waveform
   #
   def generate(filename, options={})
     raise ArgumentError.new("No destination filename given for waveform") unless filename
-
-    if File.exists?(filename)
-      if options[:force]
-        @log.out("Output file #{filename} encountered. Removing.")
-        File.unlink(filename)
-      else
-        raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+    
+    if !filename.is_a?(String) && filename.respond_to?(:path)
+      filename = filename.path
+    else
+      if File.exists?(filename)
+        if options[:force]
+          @log.out("Output file #{filename} encountered. Removing.")
+          File.unlink(filename)
+        else
+          raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+        end
       end
-    end    
+    end
 
     options = DefaultOptions.merge(options)
 
