@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |s|
   s.name              = "waveform"
-  s.version           = "0.0.4"
+  s.version           = "0.0.5"
   s.summary           = "Generate waveform images from WAV, MP3, etc... files"
   s.description       = "Generate waveform images from WAV, MP3, etc... files - as a gem or via CLI."
   s.authors           = ["Ben Alavi", "Izoria Vladislav"]
