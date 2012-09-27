@@ -8,14 +8,14 @@ rescue LoadError
 end
 
 class Waveform
-  
   DefaultOptions = {
     :method => :peak,
     :width => 1800,
     :height => 280,
     :background_color => "#666666",
     :color => "#00ccff",
-    :force => false
+    :force => false,
+    :logger => nil
   }
   
   TransparencyMask = "#00ff00"
@@ -28,111 +28,115 @@ class Waveform
   class RuntimeError < ::RuntimeError;end;
   class ArgumentError < ::ArgumentError;end;
   
-  # Setup a new Waveform for the given audio file. If given anything besides a
-  # WAV file it will attempt to first convert the file to a WAV using ffmpeg.
-  # 
-  # Optionally takes an IO stream to which it will print log/benchmarking info.
-  # 
-  # See #generate for how to generate the waveform image from the given audio
-  # file.
-  # 
-  # Available conversions depend on your installation of ffmpeg.
-  # 
-  # Example:
-  # 
-  #   Waveform.new("mp3s/Kickstart My Heart.mp3")
-  #   Waveform.new("mp3s/Kickstart My Heart.mp3", $stdout)
-  # 
-  def initialize(source, log=nil)
-    raise ArgumentError.new("No source audio filename given, must be an existing sound file.") unless source
-    raise RuntimeError.new("Source audio file '#{source}' not found.") unless File.exist?(source)
-    
-    @log = Log.new(log)
-    @log.start!
-    
-    # @source is the path to the given source file, whatever it may be
-    @source = source
-    
-    # @audio is the path to the actual audio file we will process, always wav
-    if File.extname(source) == ".wav"
-      @audio = File.open(source, "rb")
-    else
-      # This happens in initialize so you can generate multiple waveforms from
-      # the same audio without decoding multiple times
-      # 
-      # Note that we're leaving it up to the ruby/system GC to clean up these
-      # tempfiles because someone may be generating multiple waveform images
-      # from a single audio source so we can't explicitly unlink the tempfile.
-      @audio = to_wav(source)
-    end
-    
-    raise RuntimeError.new("Unable to decode source \'#{@source}\' to WAV. Do you have ffmpeg installed with an appropriate decoder for your source file?") unless @audio
-  end
-  
-  # Generate a Waveform image at the given filename with the given options.
-  # 
-  # Available options are:
-  # 
-  #   :method => The method used to read sample frames, available methods
-  #     are peak and rms. peak is probably what you're used to seeing, it uses
-  #     the maximum amplitude per sample to generate the waveform, so the
-  #     waveform looks more dynamic. RMS gives a more fluid waveform and
-  #     probably more accurately reflects what you hear, but isn't as
-  #     pronounced (typically).
-  #     
-  #     Can be :rms or :peak
-  #     Default is :peak.
-  # 
-  #   :width => The width (in pixels) of the final waveform image.
-  #     Default is 1800.
-  # 
-  #   :height => The height (in pixels) of the final waveform image.
-  #     Default is 280.
-  # 
-  #   :background_color => Hex code of the background color of the generated
-  #     waveform image.
-  #     Default is #666666 (gray).
-  #
-  #   :color => Hex code of the color to draw the waveform, or can pass
-  #     :transparent to render the waveform transparent (use w/ a solid
-  #     color background to achieve a "cutout" effect).
-  #     Default is #00ccff (cyan-ish).
-  #
-  #   :force => Force generation of waveform, overwriting WAV or PNG file.
-  #
-  # Example:
-  #   waveform = Waveform.new("mp3s/Kickstart My Heart.mp3")
-  #
-  #   waveform.generate("waves/Kickstart My Heart.png")
-  #   waveform.generate("waves/Kickstart My Heart.png", :method => :rms)
-  #   waveform.generate("waves/Kickstart My Heart.png", :color => "#ff00ff")
-  #
-  def generate(filename, options={})
-    raise ArgumentError.new("No destination filename given for waveform") unless filename
+  class << self    
+    # Generate a Waveform image at the given filename with the given options.
+    # 
+    # Available options (all optional) are:
+    # 
+    #   :method => The method used to read sample frames, available methods
+    #     are peak and rms. peak is probably what you're used to seeing, it uses
+    #     the maximum amplitude per sample to generate the waveform, so the
+    #     waveform looks more dynamic. RMS gives a more fluid waveform and
+    #     probably more accurately reflects what you hear, but isn't as
+    #     pronounced (typically).
+    #     
+    #     Can be :rms or :peak
+    #     Default is :peak.
+    # 
+    #   :width => The width (in pixels) of the final waveform image.
+    #     Default is 1800.
+    # 
+    #   :height => The height (in pixels) of the final waveform image.
+    #     Default is 280.
+    # 
+    #   :background_color => Hex code of the background color of the generated
+    #     waveform image.
+    #     Default is #666666 (gray).
+    #
+    #   :color => Hex code of the color to draw the waveform, or can pass
+    #     :transparent to render the waveform transparent (use w/ a solid
+    #     color background to achieve a "cutout" effect).
+    #     Default is #00ccff (cyan-ish).
+    #
+    #   :force => Force generation of waveform, overwriting WAV or PNG file.
+    # 
+    #   :logger => IOStream to log progress to.
+    #
+    # Example:
+    #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png")
+    #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png", :method => :rms)
+    #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png", :color => "#ff00ff", :logger => $stdout)
+    #
+    def generate(source, filename, options={})
+      options = DefaultOptions.merge(options)
+      
+      raise ArgumentError.new("No source audio filename given, must be an existing sound file.") unless source
+      raise ArgumentError.new("No destination filename given for waveform") unless filename
+      raise RuntimeError.new("Source audio file '#{source}' not found.") unless File.exist?(source)
+      raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.") if File.exists?(filename) && !options[:force] === true
 
-    if File.exists?(filename)
-      if options[:force]
-        @log.out("Output file #{filename} encountered. Removing.")
-        File.unlink(filename)
-      else
-        raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.")
+      @log = Log.new(options[:logger])
+      @log.start!
+      
+      # Frames gives the amplitudes for each channel, for our waveform we're
+      # saying the "visual" amplitude is the average of the amplitude across all
+      # the channels. This might be a little weird w/ the "peak" method if the
+      # frames are very wide (i.e. the image width is very small) -- I *think*
+      # the larger the frames are, the more "peaky" the waveform should get,
+      # perhaps to the point of inaccurately reflecting the actual sound.
+      samples = frames(source, options[:width], options[:method]).collect do |frame|
+        frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
       end
-    end    
-
-    options = DefaultOptions.merge(options)
-
-    # Frames gives the amplitudes for each channel, for our waveform we're
-    # saying the "visual" amplitude is the average of the amplitude across all
-    # the channels. This might be a little weird w/ the "peak" method if the
-    # frames are very wide (i.e. the image width is very small) -- I *think*
-    # the larger the frames are, the more "peaky" the waveform should get,
-    # perhaps to the point of inaccurately reflecting the actual sound.
-    samples = frames(options[:width], options[:method]).collect do |frame|
-      frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
+      
+      @log.timed("\nDrawing...") do
+        # Don't remove the file even if force is true until we're sure the
+        # source was readable
+        if File.exists?(filename) && options[:force] === true
+          @log.out("Output file #{filename} encountered. Removing.")
+          File.unlink(filename)
+        end
+        
+        image = draw samples, options
+        image.save filename
+      end
+      
+      @log.done!("Generated waveform '#{filename}'")      
     end
     
-    @log.timed("\nDrawing...") do
-      background_color = options[:background_color] == :transparent ? ChunkyPNG::Color::TRANSPARENT : options[:background_color]
+    private
+    
+    # Returns a sampling of frames from the given RubyAudio::Sound using the
+    # given method the sample size is determined by the given pixel width --
+    # we want one sample frame per horizontal pixel.
+    def frames(source, width, method = :peak)
+      raise ArgumentError.new("Unknown sampling method #{method}") unless [ :peak, :rms ].include?(method)
+      
+      frames = []
+
+      RubyAudio::Sound.open(source) do |audio|
+        frames_read = 0
+        frames_per_sample = (audio.info.frames.to_f / width.to_f).to_i
+        sample = RubyAudio::Buffer.new("float", frames_per_sample, audio.info.channels)
+
+        @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
+          while(frames_read = audio.read(sample)) > 0
+            frames << send(method, sample, audio.info.channels)
+            @log.out(".")
+          end
+        end
+      end
+      
+      frames
+    rescue RubyAudio::Error => e
+      raise e unless e.message == "File contains data in an unknown format."
+      raise Waveform::RuntimeError.new("Source audio file #{source} could not be read by RubyAudio library -- try converting to WAV first (RubyAudio: #{e.message})")
+    end
+    
+    # Draws the given samples using the given options, returns a ChunkyPNG::Image.
+    def draw(samples, options)      
+      image = ChunkyPNG::Image.new(options[:width], options[:height],
+        options[:background_color] == :transparent ? ChunkyPNG::Color::TRANSPARENT : options[:background_color]
+      )
       
       if options[:color] == :transparent
         color = transparent = ChunkyPNG::Color.from_hex(
@@ -145,11 +149,10 @@ class Waveform
         color = ChunkyPNG::Color.from_hex(options[:color])
       end
 
-      image = ChunkyPNG::Image.new(options[:width], options[:height], background_color)
       # Calling "zero" the middle of the waveform, like there's positive and
       # negative amplitude
       zero = options[:height] / 2.0
-      
+    
       samples.each_with_index do |sample, x|
         # Half the amplitude goes above zero, half below
         amplitude = sample * options[:height].to_f / 2.0
@@ -168,96 +171,56 @@ class Waveform
         end
       end
       
-      image.save(filename)
+      image
     end
-
-    @log.done!("Generated waveform '#{filename}'")
-  end
   
-  # Returns a sampling of frames from the given wave file using the given method
-  # the sample size is determined by the given pixel width -- we want one sample
-  # frame per horizontal pixel.
-  def frames(width, method = :peak)
-    raise ArgumentError.new("Unknown sampling method #{method}") unless [ :peak, :rms ].include?(method)
-    
-    frames = []
-    
-    RubyAudio::Sound.open(@audio.path) do |snd|
-      frames_read       = 0
-      frames_per_sample = (snd.info.frames.to_f / width.to_f).to_i
-      sample            = RubyAudio::Buffer.new("float", frames_per_sample, snd.info.channels)
-
-      @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
-        while(frames_read = snd.read(sample)) > 0
-          frames << send(method, sample, snd.info.channels)
-          @log.out(".")
-        end
+    # Returns an array of the peak of each channel for the given collection of
+    # frames -- the peak is individual to the channel, and the returned collection
+    # of peaks are not (necessarily) from the same frame(s).
+    def peak(frames, channels=1)
+      peak_frame = []
+      (0..channels-1).each do |channel|
+        peak_frame << channel_peak(frames, channel)
       end
+      peak_frame
     end
-  
-    frames
-  end
-  
-  private
-  
-  # Decode given src file to a wav Tempfile. Returns the Tempfile if the decode
-  # succeeded, or false if the decode failed.
-  def to_wav(src, force=false)
-    wav = nil
-    
-    @log.timed("Decoding source audio '#{src}' to WAV...") do    
-      wav = Tempfile.new(File.basename(src))
-      system %Q{ffmpeg -y -i "#{src}" -f wav "#{wav.path}" > /dev/null 2>&1}
-    end
-    
-    return wav.size == 0 ? false : wav
-  end
-  
-  # Returns an array of the peak of each channel for the given collection of
-  # frames -- the peak is individual to the channel, and the returned collection
-  # of peaks are not (necessarily) from the same frame(s).
-  def peak(frames, channels=1)
-    peak_frame = []
-    (0..channels-1).each do |channel|
-      peak_frame << channel_peak(frames, channel)
-    end
-    peak_frame
-  end
 
-  # Returns an array of rms values for the given frameset where each rms value is
-  # the rms value for that channel.
-  def rms(frames, channels=1)
-    rms_frame = []
-    (0..channels-1).each do |channel|
-      rms_frame << channel_rms(frames, channel)
+    # Returns an array of rms values for the given frameset where each rms value is
+    # the rms value for that channel.
+    def rms(frames, channels=1)
+      rms_frame = []
+      (0..channels-1).each do |channel|
+        rms_frame << channel_rms(frames, channel)
+      end
+      rms_frame
     end
-    rms_frame
-  end
   
-  # Returns the peak voltage reached on the given channel in the given collection
-  # of frames.
-  # 
-  # TODO: Could lose some resolution and only sample every other frame, would
-  # likely still generate the same waveform as the waveform is so comparitively
-  # low resolution to the original input (in most cases), and would increase
-  # the analyzation speed (maybe).
-  def channel_peak(frames, channel=0)
-    peak = 0.0
-    frames.each do |frame|
-      next if frame.nil?
-      peak = frame[channel].abs if frame[channel].abs > peak
+    # Returns the peak voltage reached on the given channel in the given collection
+    # of frames.
+    # 
+    # TODO: Could lose some resolution and only sample every other frame, would
+    # likely still generate the same waveform as the waveform is so comparitively
+    # low resolution to the original input (in most cases), and would increase
+    # the analyzation speed (maybe).
+    def channel_peak(frames, channel=0)
+      peak = 0.0
+      frames.each do |frame|
+        next if frame.nil?
+        frame = Array(frame)
+        peak = frame[channel].abs if frame[channel].abs > peak
+      end
+      peak
     end
-    peak
-  end
 
-  # Returns the rms value across the given collection of frames for the given
-  # channel.
-  # 
-  # FIXME: this RMS calculation might be wrong...
-  # refactored this from: http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
-  def channel_rms(frames, channel=0)
-    avg = frames.inject(0.0){ |sum, frame| sum += frame ? frame[channel] : 0 }/frames.size.to_f
-    Math.sqrt(frames.inject(0.0){ |sum, frame| sum += frame ? (frame[channel]-avg)**2 : 0 }/frames.size.to_f)
+    # Returns the rms value across the given collection of frames for the given
+    # channel.
+    # 
+    # FIXME: this RMS calculation might be wrong...
+    # refactored this from: http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
+    def channel_rms(frames, channel=0)
+      avg = frames.inject(0.0){ |sum, frame| sum += frame ? Array(frame)[channel] : 0 }/frames.size.to_f
+      Math.sqrt(frames.inject(0.0){ |sum, frame| sum += frame ? (Array(frame)[channel]-avg)**2 : 0 }/frames.size.to_f)
+    end
   end
 end
 
@@ -269,11 +232,11 @@ class Waveform
   # easier than using Google.
   class Log
     attr_accessor :io
-    
+
     def initialize(io=$stdout)
       @io = io
     end
-    
+
     # Prints the given message to the log
     def out(msg)
       io.print(msg) if io
@@ -310,7 +273,7 @@ class Waveform
     def time?(index)
       Time.now - @benchmarks[index]
     end
-    
+
     # Benchmarks the given block, printing out the given message first (if
     # given).
     def timed(message=nil, &block)
@@ -320,4 +283,4 @@ class Waveform
       done!
     end
   end
-end
+end    

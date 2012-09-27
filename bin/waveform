@@ -34,9 +34,9 @@ optparse = OptionParser.new do |o|
     options[:method] = method.to_sym
   end
 
-  options[:quiet] = false
+  options[:logger] = $stdout
   o.on("-q", "--quiet", "Don't print anything out when generating waveform") do
-    options[:quiet] = true
+    options[:logger] = nil
   end
 
   options[:force] = false
@@ -53,11 +53,10 @@ end
 optparse.parse!
 
 begin
-  Waveform.new(ARGV[0], options[:quiet] ? nil : $stdout).generate(ARGV[1] || "waveform.png", options)
+  Waveform.generate(ARGV[0], ARGV[1] || "waveform.png", options)
 rescue Waveform::ArgumentError => e
   puts e.message + "\n\n"
   puts optparse
 rescue Waveform::RuntimeError => e
   puts e.message
 end
-

@@ -1,35 +1,27 @@
 Waveform
 ========
 
-Waveform is a class to generate waveform images from audio files. You can
-combine it with jPlayer to make a soundcloud.com style MP3 player. It also
-comes with a handy CLI you can use to generate waveform images on the command
-line.
+Waveform is a class to generate waveform images from audio files. You can combine it with jPlayer to make a soundcloud.com style MP3 player. It also comes with a handy CLI you can use to generate waveform images on the command line.
 
 Installation
 ============
 
-Build libsndfile (http://www.mega-nerd.com/libsndfile/), or install it via `apt`
-(`sudo apt-get install libsndfile1-dev`), or `libsndfile` in macports.
+Waveform depends on `ruby-audio`, which in turn depends on libsndfile.
+
+Build libsndfile from (http://www.mega-nerd.com/libsndfile/), install it via `apt` (`sudo apt-get install libsndfile1-dev`), `libsndfile` in macports, etc...
+
+Then:
 
     $ sudo gem install waveform
 
-You might also want to, but don't have to:
+Image creation depends on `chunky_png`, which has a faster native library called `oily_png` which will be used if availble.
 
     $ sudo gem install oily_png
-    
-to make things a bit faster, and:
-
-    $ sudo apt-get install ffmpeg
-    
-if you want Waveform to convert non WAV audio for you.
-
-_See Requirements below for more info_
 
 CLI Usage
 =========
 
-    $ waveform song.mp3 waveform.png
+    $ waveform song.wav waveform.png
 
 There are some nifty options you can supply to switch things up:
 
@@ -53,51 +45,54 @@ Generating a small waveform "cut out" of a white background is pretty useful,
 then you can overlay it on a web-gradient on the website for your new startup
 and it will look really cool. To make it you could use:
 
-    $ waveform -W900 -H140 -ctransparent -b#ffffff Motley\ Crüe/Kickstart\ my\ Heart.mp3 sweet_waveforms/Kickstart\ my\ Heart.png
+    $ waveform -W900 -H140 -ctransparent -b#ffffff Motley\ Crüe/Kickstart\ my\ Heart.wav sweet_waveforms/Kickstart\ my\ Heart.png
 
 Usage in code
 =============
 
-The CLI is really just a thin wrapper around the Waveform class, which you can
-also use in your programs for reasons I haven't thought of. The Waveform class
-takes pretty much the same options as the CLI when generating waveforms.
+The CLI is really just a thin wrapper around the Waveform class, which you can also use in your programs for reasons I haven't thought of. The Waveform class takes pretty much the same options as the CLI when generating waveforms.
 
 Requirements
 ============
 
 `ruby-audio`
 
-The gem version, *not* the old outdated library listed on RAA. `ruby-audio` is
-a wrapper for `libsndfile`, on my Ubuntu 10.04LTS VM I installed the necessary
-libs to build `ruby-audio` via: `sudo apt-get install libsndfile1-dev`.
+The gem version, *not* the old outdated library listed on RAA. `ruby-audio` is a wrapper for `libsndfile`, on my Ubuntu 10.04LTS VM I installed the necessary libs to build `ruby-audio` via: `sudo apt-get install libsndfile1-dev`.
 
 `chunky_png`
 
-`chunky_png` is a pure ruby (!) PNG manipulation library. Caveat to this
-requirement is that if you also install `oily_png` you will get *better
-performance* as it uses some C code, and C code is fast.
+`chunky_png` is a pure ruby (!) PNG manipulation library. Caveat to this requirement is that if you also install `oily_png` you will get *better performance* as it uses some C code, and C code is fast.
 
-`ffmpeg` (sorta)
+Converting MP3 to WAV
+=====================
 
-You only need `ffmpeg` if you plan to generate waveforms from files that aren't
-already WAVs (like MP3, or M4A). On my same Ubuntu VM I installed it via `sudo
-apt-get install ffmpeg` and it was able to convert MP3 and M4A files out of the
-box. The formats you can convert depend on which decoders you have installed.
+Waveform used to (very thinly) wrap ffmpeg to convert MP3 (and whatever other format) to WAV audio before processing the WAV and generating the waveform image. It seemed a bit presumptious for Waveform to handle that, especially since you might want to use your own conversion options (i.e. downsampling the bitrate to generate waveforms faster, etc...).
 
-If you don't want to install ffmpeg, you could also use one of the many audio
-format converters to convert your files to WAV before generating waveforms.
+If you happen to be using ffmpeg, you can easily convert MP3 to WAV via:
 
-Or you could be all retro and use WAV audio for everything in the first place.
+    ffmpeg -i "/path/to/source/file.mp3" -f wav "/path/to/output/file.wav"
 
 Tests
 =====
 
-Tests require `contest` gem & `ffmpeg` (to test conversion), run via:
+    $ rake
+    
+If you get an error about not being able to find ruby-audio gem (and you have ruby-audio gem) you might need to let rake know how to load your gems -- if you're using rubygems:
 
+    $ export RUBYOPT="rubygems"
     $ rake
 
-Sample sound file is in Public Domain from soundbible.com.
-<http://soundbible.com/1598-Electronic-Chime.html>
+Sample sound file used in tests is in the Public Domain from soundbible.com: <http://soundbible.com/1598-Electronic-Chime.html>.
+
+Changes
+=======
+
+0.1.0
+-----
+  * No more wrapping ffmpeg to automatically convert mp3 to wav
+  * Fixed support for mono audio sources (4-channel, surround, etc. should also work)
+  * Change to gemspec & added seperate version file so that bundler won't try to load ruby-audio (thanks, amiel)
+  * Changed Waveform-class API as there's no longer a need to instantiate a waveform
 
 References
 ==========
@@ -110,7 +105,7 @@ References
 License
 =======
 
-Copyright (c) 2010-2011 Ben Alavi
+Copyright (c) 2010-2012 Ben Alavi
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
