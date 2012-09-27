@@ -5,7 +5,8 @@ require "optparse"
 options = Waveform::DefaultOptions
 optparse = OptionParser.new do |o|
   o.banner = "Usage: waveform [options] source_audio [ouput.png]"
-
+  o.version = Waveform::VERSION
+  
   o.on("-W", "--width WIDTH", "Width (in pixels) of generated waveform image -- Default #{Waveform::DefaultOptions[:width]}.") do |width|
     options[:width] = width.to_i
   end
