@@ -245,7 +245,8 @@ class Waveform
     peak = 0.0
     frames.each do |frame|
       next if frame.nil?
-      peak = frame[channel].abs if frame[channel].abs > peak
+      frame = Array(frame)[channel].abs
+      peak = frame.abs if frame.abs > peak
     end
     peak
   end
@@ -256,8 +257,8 @@ class Waveform
   # FIXME: this RMS calculation might be wrong...
   # refactored this from: http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
   def channel_rms(frames, channel=0)
-    avg = frames.inject(0.0){ |sum, frame| sum += frame ? frame[channel] : 0 }/frames.size.to_f
-    Math.sqrt(frames.inject(0.0){ |sum, frame| sum += frame ? (frame[channel]-avg)**2 : 0 }/frames.size.to_f)
+    avg = frames.inject(0.0){ |sum, frame| sum += frame ? Array(frame)[channel] : 0 }/frames.size.to_f
+    Math.sqrt(frames.inject(0.0){ |sum, frame| sum += frame ? (Array(frame)[channel]-avg)**2 : 0 }/frames.size.to_f)
   end
 end
 
