@@ -87,6 +87,10 @@ Sample sound file used in tests is in the Public Domain from soundbible.com: <ht
 Changes
 =======
 
+0.1.1
+-----
+  * Fixed RMS calculation (was calculating RMSD instead of RMS before) -- thanks, cviedmai
+
 0.1.0
 -----
   * No more wrapping ffmpeg to automatically convert mp3 to wav
