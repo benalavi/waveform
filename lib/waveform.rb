@@ -214,12 +214,8 @@ class Waveform
 
     # Returns the rms value across the given collection of frames for the given
     # channel.
-    # 
-    # FIXME: this RMS calculation might be wrong...
-    # refactored this from: http://pscode.org/javadoc/src-html/org/pscode/ui/audiotrace/AudioPlotPanel.html#line.996
     def channel_rms(frames, channel=0)
-      avg = frames.inject(0.0){ |sum, frame| sum += frame ? Array(frame)[channel] : 0 }/frames.size.to_f
-      Math.sqrt(frames.inject(0.0){ |sum, frame| sum += frame ? (Array(frame)[channel]-avg)**2 : 0 }/frames.size.to_f)
+      Math.sqrt(frames.inject(0.0){ |sum, frame| sum += (frame ? Array(frame)[channel] ** 2 : 0) } / frames.size)
     end
   end
 end
