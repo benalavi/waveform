@@ -87,6 +87,10 @@ Sample sound file used in tests is in the Public Domain from soundbible.com: <ht
 Changes
 =======
 
+0.1.2
+-----
+  * Added more helpful deprecation notice for non-WAV audio files
+
 0.1.1
 -----
   * Fixed RMS calculation (was calculating RMSD instead of RMS before) -- thanks, cviedmai

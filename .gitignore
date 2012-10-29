@@ -8,3 +8,4 @@ deploy/*
 test/output/*
 .DS_Store
 *.gem
+hai

@@ -1,7 +1,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "waveform"))
 
 require "test/unit"
-require "ruby-debug"
 require "fileutils"
 
 module Helpers
@@ -162,7 +161,15 @@ class WaveformTest < Test::Unit::TestCase
     assert_raises Waveform::RuntimeError do
       Waveform.generate(fixture("sample.wav"), output("wont_be_overwritten_by_default.png"))
     end
-  end  
+  end
+  
+  def test_raises_deprecation_exception_if_ruby_audio_fails_to_read_source_file
+    begin
+      Waveform.generate(fixture("sample.txt"), output("shouldnt_exist.png"))
+    rescue Waveform::RuntimeError => e
+      assert_match /Hint: non-WAV files are no longer supported, convert to WAV first using something like ffmpeg/, e.message
+    end
+  end
 end
 
 WaveformTest.cleanup

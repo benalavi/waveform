@@ -129,7 +129,7 @@ class Waveform
       frames
     rescue RubyAudio::Error => e
       raise e unless e.message == "File contains data in an unknown format."
-      raise Waveform::RuntimeError.new("Source audio file #{source} could not be read by RubyAudio library -- try converting to WAV first (RubyAudio: #{e.message})")
+      raise Waveform::RuntimeError.new("Source audio file #{source} could not be read by RubyAudio library -- Hint: non-WAV files are no longer supported, convert to WAV first using something like ffmpeg (RubyAudio: #{e.message})")
     end
     
     # Draws the given samples using the given options, returns a ChunkyPNG::Image.
