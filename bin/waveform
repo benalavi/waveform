@@ -6,13 +6,17 @@ options = Waveform::DefaultOptions
 optparse = OptionParser.new do |o|
   o.banner = "Usage: waveform [options] source_audio [output.png]"
   o.version = Waveform::VERSION
-  
+
   o.on("-W", "--width WIDTH", "Width (in pixels) of generated waveform image -- Default #{Waveform::DefaultOptions[:width]}.") do |width|
     options[:width] = width.to_i
   end
 
   o.on("-H", "--height HEIGHT", "Height (in pixels) of generated waveform image -- Default #{Waveform::DefaultOptions[:height]}.") do |height|
     options[:height] = height.to_i
+  end
+
+  o.on("-a", "--autowidth MSEC", "Sets the width of the waveform based on the audio length, using a resolution of the given msec per pixel.") do |msec|
+    options[:auto_width] = msec.to_i
   end
 
   o.on("-c", "--color COLOR", "Color (hex code) to draw the waveform. Can also pass 'transparent' to cut it out of the background -- Default #{Waveform::DefaultOptions[:color]}.") do |color|
