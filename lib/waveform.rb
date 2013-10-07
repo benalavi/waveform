@@ -85,7 +85,7 @@ class Waveform
 
       if options[:auto_width]
         RubyAudio::Sound.open(source) do |audio|
-          options[:width] = (audio.info.length * 1000 / options[:auto_width].to_i).round
+          options[:width] = (audio.info.length * 1000 / options[:auto_width].to_i).ceil
         end
       end
 
