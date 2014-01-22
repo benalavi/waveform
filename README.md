@@ -17,6 +17,8 @@ Then:
 Image creation depends on `chunky_png`, which has a faster native library called `oily_png` which will be used if availble.
 
     $ sudo gem install oily_png
+    
+NOTE: If `ruby-audio` fails to compile and you have `libsndfile` available, it may be because of this: http://stackoverflow.com/questions/19919640/ruby-audio-1-6-1-install-error-with-installed-libsndfile-1-0-25
 
 CLI Usage
 =========
