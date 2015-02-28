@@ -15,7 +15,8 @@ class Waveform
     :background_color => "#666666",
     :color => "#00ccff",
     :force => false,
-    :logger => nil
+    :logger => nil,
+    :type => :audio
   }
 
   TransparencyMask = "#00ff00"
@@ -67,6 +68,10 @@ class Waveform
     #
     #   :logger => IOStream to log progress to.
     #
+    #   :type => form of waveform
+    #    Can be :audio or :phonocardiogram
+    #    Default is traditional audio waveform which includes plotting mirrored absolute values of points
+    #
     # Example:
     #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png")
     #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png", :method => :rms)
@@ -95,7 +100,7 @@ class Waveform
       # frames are very wide (i.e. the image width is very small) -- I *think*
       # the larger the frames are, the more "peaky" the waveform should get,
       # perhaps to the point of inaccurately reflecting the actual sound.
-      samples = frames(source, options[:width], options[:method]).collect do |frame|
+      samples = frames(source, options[:width], options[:method], options[:type]).collect do |frame|
         frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
       end
 
@@ -119,7 +124,7 @@ class Waveform
     # Returns a sampling of frames from the given RubyAudio::Sound using the
     # given method the sample size is determined by the given pixel width --
     # we want one sample frame per horizontal pixel.
-    def frames(source, width, method = :peak)
+    def frames(source, width, method = :peak, type = :audio)
       raise ArgumentError.new("Unknown sampling method #{method}") unless [ :peak, :rms ].include?(method)
 
       frames = []
@@ -128,10 +133,9 @@ class Waveform
         frames_read = 0
         frames_per_sample = (audio.info.frames.to_f / width.to_f).to_i
         sample = RubyAudio::Buffer.new("float", frames_per_sample, audio.info.channels)
-
         @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
           while(frames_read = audio.read(sample)) > 0
-            frames << send(method, sample, audio.info.channels)
+            frames << send(method, sample, audio.info.channels, type)
             @log.out(".")
           end
         end
@@ -160,17 +164,7 @@ class Waveform
         color = ChunkyPNG::Color.from_hex(options[:color])
       end
 
-      # Calling "zero" the middle of the waveform, like there's positive and
-      # negative amplitude
-      zero = options[:height] / 2.0
-
-      samples.each_with_index do |sample, x|
-        # Half the amplitude goes above zero, half below
-        amplitude = sample * options[:height].to_f / 2.0
-        # If you give ChunkyPNG floats for pixel positions all sorts of things
-        # go haywire.
-        image.line(x, (zero - amplitude).round, x, (zero + amplitude).round, color)
-      end
+      options[:type] == :audio ? image = drawAudio(samples, image, options, color) : image = drawPhonocardiogram(samples, image, options, color);
 
       # Simple transparency masking, it just loops over every pixel and makes
       # ones which match the transparency mask color completely clear.
@@ -185,13 +179,48 @@ class Waveform
       image
     end
 
+    def drawAudio(samples, image, options, color)
+      # Calling "zero" the middle of the waveform, like there's positive and
+      # negative amplitude
+      zero = options[:height] / 2.0
+
+      samples.each_with_index do |sample, x|
+        # Half the amplitude goes above zero, half below
+        amplitude = sample * options[:height].to_f / 2.0
+        # If you give ChunkyPNG floats for pixel positions all sorts of things
+        # go haywire.
+        image.line(x, (zero - amplitude).round, x, (zero + amplitude).round, color)
+      end
+      image
+    end
+
+    def drawPhonocardiogram(samples, image, options, color)
+      zero = options[:height] / 2.0
+      last_point_x_y = []
+      samples.each_with_index do |sample, x|
+        amplitude = sample * options[:height].to_f / 2.0
+        if last_point_x_y.empty?
+          last_point_x_y[0] = x
+          last_point_x_y[1] = (zero - amplitude).round
+        end
+        # Half the amplitude goes above zero, half below
+        # If you give ChunkyPNG floats for pixel positions all sorts of things
+        # go haywire.
+        image.line(last_point_x_y[0], last_point_x_y[1], x, (zero - amplitude).round, color)
+        # image.line(last_point_x_y[0], last_point_x_y[1], x, (zero + amplitude).round, color)
+        last_point_x_y[0] = x
+        last_point_x_y[1] = (zero - amplitude).round
+      end
+      image
+    end
+
     # Returns an array of the peak of each channel for the given collection of
     # frames -- the peak is individual to the channel, and the returned collection
     # of peaks are not (necessarily) from the same frame(s).
-    def peak(frames, channels=1)
+    def peak(frames, channels=1, type)
       peak_frame = []
       (0..channels-1).each do |channel|
-        peak_frame << channel_peak(frames, channel)
+        peak_frame << channel_peak(frames, channel, type)
       end
       peak_frame
     end
@@ -213,12 +242,16 @@ class Waveform
     # likely still generate the same waveform as the waveform is so comparitively
     # low resolution to the original input (in most cases), and would increase
     # the analyzation speed (maybe).
-    def channel_peak(frames, channel=0)
+    def channel_peak(frames, channel=0, type)
       peak = 0.0
       frames.each do |frame|
         next if frame.nil?
         frame = Array(frame)
-        peak = frame[channel].abs if frame[channel].abs > peak
+        if type == :audio
+          peak = frame[channel].abs if frame[channel].abs > peak
+        else
+          peak = frame[channel]
+        end
       end
       peak
     end

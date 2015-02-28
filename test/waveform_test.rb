@@ -54,6 +54,14 @@ class WaveformTest < Test::Unit::TestCase
     assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
   end
 
+  def test_generates_phonocardiogram_waveform
+    Waveform.generate(fixture("phonocardiogram_sample.wav"), output("phonocardiogram_sample.png"), :type => :phonocardiogram)
+    assert File.exists?(output("phonocardiogram_sample.png"))
+
+    image = open_png(output("phonocardiogram_sample.png"))
+    assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
+  end
+
   def test_logs_to_given_io
     File.open(output("waveform.log"), "w") do |io|
       Waveform.generate(fixture("sample.wav"), output("logged.png"), :logger => io)
