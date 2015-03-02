@@ -16,7 +16,8 @@ class Waveform
     :color => "#00ccff",
     :force => false,
     :logger => nil,
-    :type => :audio
+    :type => :audio,
+    :samples => :read
   }
 
   TransparencyMask = "#00ff00"
@@ -72,6 +73,11 @@ class Waveform
     #    Can be :audio or :phonocardiogram
     #    Default is traditional audio waveform which includes plotting mirrored absolute values of points
     #
+    #   :samples => origin of sample data
+    #    Can be array of samples or :read
+    #    Default is :read which means the audio's samples will be created by the gem
+    #    When array of samples is provided, assumption is each float will be between -1 and 1
+    #
     # Example:
     #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png")
     #   Waveform.generate("Kickstart My Heart.wav", "Kickstart My Heart.png", :method => :rms)
@@ -100,9 +106,7 @@ class Waveform
       # frames are very wide (i.e. the image width is very small) -- I *think*
       # the larger the frames are, the more "peaky" the waveform should get,
       # perhaps to the point of inaccurately reflecting the actual sound.
-      samples = frames(source, options[:width], options[:method], options[:type]).collect do |frame|
-        frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
-      end
+      samples = retrieve_samples(source, options)
 
       @log.timed("\nDrawing...") do
         # Don't remove the file even if force is true until we're sure the
@@ -120,6 +124,16 @@ class Waveform
     end
 
     private
+
+    def retrieve_samples(source, options)
+      if options[:samples] == :read
+        samples = frames(source, options[:width], options[:method], options[:type]).collect do |frame|
+          frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
+        end
+      elsif options[:samples].class == Array
+        samples = options[:samples]
+      end
+    end
 
     # Returns a sampling of frames from the given RubyAudio::Sound using the
     # given method the sample size is determined by the given pixel width --
@@ -198,7 +212,6 @@ class Waveform
       #generally follows drawAudio with minor adjustments to remove mirroring and graph points with negative values (had to channel peaks in order to retain negative values in samples)
 
       zero = options[:height] / 2.0
-
       #establish starting point of first line in graph
       starting_point = [0, (zero - (samples[0] * options[:height].to_f/2.0).round)]
 
