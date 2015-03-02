@@ -38,7 +38,7 @@ There are some nifty options you can supply to switch things up:
         cooler, but 'rms' is closer to what you actually hear.
     -s sets the method used to retrieve samples of audio file, it can either be
         'read' or an array of points within -1..1 range. 'read' is default and samples
-        from the audio file provided
+        from the audio file provided as indicated by the method given in -m
     -t sets the type of waveform to render, it can either be 'audio' or 'phonocardiogram'.
        'audio' is default and commonly seen on sites that play music: example of an audio wave http://www.bza.biz/indexhibit/files/gimgs/waveform.gif)
        'phonocardiogram' is specific to heartbeats example: http://www.stethographics.com/newimages/products/phono/murmur.jpg
