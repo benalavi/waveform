@@ -195,19 +195,19 @@ class Waveform
     end
 
     def drawPhonocardiogram(samples, image, options, color)
-      #generally follows drawAudio with minor adjustments to remove mirroring and graph points with negative values
+      #generally follows drawAudio with minor adjustments to remove mirroring and graph points with negative values (had to channel peaks in order to retain negative values in samples)
 
       zero = options[:height] / 2.0
 
       #establish starting point of first line in graph
-      last_point_x_y = [0, (zero - (samples[0] * options[:height].to_f/2.0).round)]
+      starting_point = [0, (zero - (samples[0] * options[:height].to_f/2.0).round)]
 
       samples.each_with_index do |sample, x|
         amplitude = sample * options[:height].to_f / 2.0
         #connect end of last line with current point in sample data
-        image.line(last_point_x_y[0], last_point_x_y[1], x, (zero - amplitude).round, color)
+        image.line(starting_point[0], starting_point[1], x, (zero - amplitude).round, color)
         #update last point data so next line will begin from correct point
-        last_point_x_y.replace([x, (zero - amplitude).round])
+        starting_point.replace([x, (zero - amplitude).round])
       end
       image
     end
