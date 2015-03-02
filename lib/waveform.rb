@@ -225,7 +225,7 @@ class Waveform
 
     # Returns an array of rms values for the given frameset where each rms value is
     # the rms value for that channel.
-    def rms(frames, channels=1)
+    def rms(frames, channels=1, type)
       rms_frame = []
       (0..channels-1).each do |channel|
         rms_frame << channel_rms(frames, channel)
