@@ -39,6 +39,14 @@ optparse = OptionParser.new do |o|
     options[:method] = method.to_sym
   end
 
+  o.on("-t", "--type TYPE", "Type of waveform generated (can be 'audio' or 'phonocardiogram') -- Default '#{Waveform::DefaultOptions[:type]}'.") do |type|
+    options[:type] = type.to_sym
+  end
+
+  o.on("-s", "--samples SAMPLES", "Origin of samples (can be 'read' or an array of floats -1..1) -- Default '#{Waveform::DefaultOptions[:samples]}'.") do |samples|
+    options[:samples] = samples.to_sym
+  end
+
   options[:logger] = $stdout
   o.on("-q", "--quiet", "Don't print anything out when generating waveform") do
     options[:logger] = nil
