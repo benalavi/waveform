@@ -15,7 +15,9 @@ class Waveform
     :background_color => "#666666",
     :color => "#00ccff",
     :force => false,
-    :logger => nil
+    :logger => nil,
+    :return_samples => false,
+    :save_file => true
   }
 
   TransparencyMask = "#00ff00"
@@ -98,20 +100,24 @@ class Waveform
       samples = frames(source, options[:width], options[:method]).collect do |frame|
         frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
       end
+      
+      unless options[:save_file] == false
+        @log.timed("\nDrawing...") do
+          # Don't remove the file even if force is true until we're sure the
+          # source was readable
+          if File.exists?(filename) && options[:force] === true
+            @log.out("Output file #{filename} encountered. Removing.")
+            File.unlink(filename)
+          end
 
-      @log.timed("\nDrawing...") do
-        # Don't remove the file even if force is true until we're sure the
-        # source was readable
-        if File.exists?(filename) && options[:force] === true
-          @log.out("Output file #{filename} encountered. Removing.")
-          File.unlink(filename)
+          image = draw samples, options
+          image.save filename
         end
-
-        image = draw samples, options
-        image.save filename
       end
 
       @log.done!("Generated waveform '#{filename}'")
+      
+      samples if options[:return_samples] == true
     end
 
     private
