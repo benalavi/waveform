@@ -14,7 +14,7 @@ Then:
 
     $ sudo gem install waveform
 
-Image creation depends on `chunky_png`, which has a faster native library called `oily_png` which will be used if availble.
+Image creation depends on `chunky_png`, which has a faster native library called `oily_png` which will be used if available.
 
     $ sudo gem install oily_png
     
