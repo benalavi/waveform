@@ -78,7 +78,7 @@ class Waveform
       raise ArgumentError.new("No source audio filename given, must be an existing sound file.") unless source
       raise ArgumentError.new("No destination filename given for waveform") unless filename
       raise RuntimeError.new("Source audio file '#{source}' not found.") unless File.exist?(source)
-      raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.") if File.exists?(filename) && !options[:force] === true
+      raise RuntimeError.new("Destination file #{filename} exists. Use --force if you want to automatically remove it.") if File.exist?(filename) && !options[:force] === true
 
       @log = Log.new(options[:logger])
       @log.start!
@@ -102,7 +102,7 @@ class Waveform
       @log.timed("\nDrawing...") do
         # Don't remove the file even if force is true until we're sure the
         # source was readable
-        if File.exists?(filename) && options[:force] === true
+        if File.exist?(filename) && options[:force] === true
           @log.out("Output file #{filename} encountered. Removing.")
           File.unlink(filename)
         end
