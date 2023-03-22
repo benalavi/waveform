@@ -4,7 +4,7 @@ require "test/unit"
 require "fileutils"
 
 module Helpers
-  def fixture(file)
+  def fixture_asset(file)
     File.join(File.dirname(__FILE__), "fixtures", file)
   end
 
@@ -28,8 +28,8 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_generates_waveform
-    Waveform.generate(fixture("sample.wav"), output("waveform_from_audio_source.png"))
-    assert File.exists?(output("waveform_from_audio_source.png"))
+    Waveform.generate(fixture_asset("sample.wav"), output("waveform_from_audio_source.png"))
+    assert File.exist?(output("waveform_from_audio_source.png"))
 
     image = open_png(output("waveform_from_audio_source.png"))
     assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
@@ -37,8 +37,8 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_generates_waveform_from_mono_audio_source_via_peak
-    Waveform.generate(fixture("mono_sample.wav"), output("waveform_from_mono_audio_source_via_peak.png"))
-    assert File.exists?(output("waveform_from_mono_audio_source_via_peak.png"))
+    Waveform.generate(fixture_asset("mono_sample.wav"), output("waveform_from_mono_audio_source_via_peak.png"))
+    assert File.exist?(output("waveform_from_mono_audio_source_via_peak.png"))
 
     image = open_png(output("waveform_from_mono_audio_source_via_peak.png"))
     assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
@@ -46,8 +46,8 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_generates_waveform_from_mono_audio_source_via_rms
-    Waveform.generate(fixture("mono_sample.wav"), output("waveform_from_mono_audio_source_via_rms.png"), :method => :rms)
-    assert File.exists?(output("waveform_from_mono_audio_source_via_rms.png"))
+    Waveform.generate(fixture_asset("mono_sample.wav"), output("waveform_from_mono_audio_source_via_rms.png"), :method => :rms)
+    assert File.exist?(output("waveform_from_mono_audio_source_via_rms.png"))
 
     image = open_png(output("waveform_from_mono_audio_source_via_rms.png"))
     assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
@@ -56,15 +56,15 @@ class WaveformTest < Test::Unit::TestCase
 
   def test_logs_to_given_io
     File.open(output("waveform.log"), "w") do |io|
-      Waveform.generate(fixture("sample.wav"), output("logged.png"), :logger => io)
+      Waveform.generate(fixture_asset("sample.wav"), output("logged.png"), :logger => io)
     end
 
     assert_match /Generated waveform/, File.read(output("waveform.log"))
   end
 
   def test_uses_rms_instead_of_peak
-    Waveform.generate(fixture("sample.wav"), output("peak.png"))
-    Waveform.generate(fixture("sample.wav"), output("rms.png"), :method => :rms)
+    Waveform.generate(fixture_asset("sample.wav"), output("peak.png"))
+    Waveform.generate(fixture_asset("sample.wav"), output("rms.png"), :method => :rms)
 
     rms = open_png(output("rms.png"))
     peak = open_png(output("peak.png"))
@@ -75,7 +75,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_is_900px_wide
-    Waveform.generate(fixture("sample.wav"), output("width-900.png"), :width => 900)
+    Waveform.generate(fixture_asset("sample.wav"), output("width-900.png"), :width => 900)
 
     image = open_png(output("width-900.png"))
 
@@ -83,7 +83,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_is_100px_tall
-    Waveform.generate(fixture("sample.wav"), output("height-100.png"), :height => 100)
+    Waveform.generate(fixture_asset("sample.wav"), output("height-100.png"), :height => 100)
 
     image = open_png(output("height-100.png"))
 
@@ -91,7 +91,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_has_auto_width
-    Waveform.generate(fixture("sample.wav"), output("width-auto.png"), :auto_width => 10)
+    Waveform.generate(fixture_asset("sample.wav"), output("width-auto.png"), :auto_width => 10)
 
     image = open_png(output("width-auto.png"))
 
@@ -99,7 +99,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_has_red_background_color
-    Waveform.generate(fixture("sample.wav"), output("background_color-#ff0000.png"), :background_color => "#ff0000")
+    Waveform.generate(fixture_asset("sample.wav"), output("background_color-#ff0000.png"), :background_color => "#ff0000")
 
     image = open_png(output("background_color-#ff0000.png"))
 
@@ -107,7 +107,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_has_transparent_background_color
-    Waveform.generate(fixture("sample.wav"), output("background_color-transparent.png"), :background_color => :transparent)
+    Waveform.generate(fixture_asset("sample.wav"), output("background_color-transparent.png"), :background_color => :transparent)
 
     image = open_png(output("background_color-transparent.png"))
 
@@ -115,7 +115,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_has_black_foreground_color
-    Waveform.generate(fixture("sample.wav"), output("color-#000000.png"), :color => "#000000")
+    Waveform.generate(fixture_asset("sample.wav"), output("color-#000000.png"), :color => "#000000")
 
     image = open_png(output("color-#000000.png"))
 
@@ -123,7 +123,7 @@ class WaveformTest < Test::Unit::TestCase
   end
 
   def test_has_red_background_color_with_transparent_foreground_cutout
-    Waveform.generate(fixture("sample.wav"), output("background_color-#ff0000+color-transparent.png"), :background_color => "#ff0000", :color => :transparent)
+    Waveform.generate(fixture_asset("sample.wav"), output("background_color-#ff0000+color-transparent.png"), :background_color => "#ff0000", :color => :transparent)
 
     image = open_png(output("background_color-#ff0000+color-transparent.png"))
 
@@ -135,7 +135,7 @@ class WaveformTest < Test::Unit::TestCase
   # don't destroy the image if the background also uses the transparency mask
   # color
   def test_has_transparent_foreground_on_bright_green_background
-    Waveform.generate(fixture("sample.wav"), output("background_color-#00ff00+color-transparent.png"), :background_color => "#00ff00", :color => :transparent)
+    Waveform.generate(fixture_asset("sample.wav"), output("background_color-#00ff00+color-transparent.png"), :background_color => "#00ff00", :color => :transparent)
 
     image = open_png(output("background_color-#00ff00+color-transparent.png"))
 
@@ -145,21 +145,21 @@ class WaveformTest < Test::Unit::TestCase
 
   def test_raises_error_if_not_given_readable_audio_source
     assert_raise(Waveform::RuntimeError) do
-      Waveform.generate(fixture("sample.txt"), output("shouldnt_exist.png"))
+      Waveform.generate(fixture_asset("sample.txt"), output("shouldnt_exist.png"))
     end
   end
 
   def test_overwrites_existing_waveform_if_force_is_true_and_file_exists
     FileUtils.touch output("overwritten.png")
 
-    Waveform.generate(fixture("sample.wav"), output("overwritten.png"), :force => true)
+    Waveform.generate(fixture_asset("sample.wav"), output("overwritten.png"), :force => true)
   end
 
   def test_raises_exception_if_waveform_exists_and_force_is_false
     FileUtils.touch output("wont_be_overwritten.png")
 
     assert_raises Waveform::RuntimeError do
-      Waveform.generate(fixture("sample.wav"), output("wont_be_overwritten.png"), :force => false)
+      Waveform.generate(fixture_asset("sample.wav"), output("wont_be_overwritten.png"), :force => false)
     end
   end
 
@@ -167,13 +167,13 @@ class WaveformTest < Test::Unit::TestCase
     FileUtils.touch output("wont_be_overwritten_by_default.png")
 
     assert_raises Waveform::RuntimeError do
-      Waveform.generate(fixture("sample.wav"), output("wont_be_overwritten_by_default.png"))
+      Waveform.generate(fixture_asset("sample.wav"), output("wont_be_overwritten_by_default.png"))
     end
   end
 
   def test_raises_deprecation_exception_if_ruby_audio_fails_to_read_source_file
     begin
-      Waveform.generate(fixture("sample.txt"), output("shouldnt_exist.png"))
+      Waveform.generate(fixture_asset("sample.txt"), output("shouldnt_exist.png"))
     rescue Waveform::RuntimeError => e
       assert_match /Hint: non-WAV files are no longer supported, convert to WAV first using something like ffmpeg/, e.message
     end
