@@ -91,7 +91,7 @@ Changes
 
 0.1.3
 -----
-  * Update for ruby 3.2 (replace File.exists? w/ File.exist?)
+  * Update for ruby 3.2 (replace `File.exists?` w/ `File.exist?`)
 
 0.1.2
 -----
