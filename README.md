@@ -17,7 +17,7 @@ Then:
 Image creation depends on `chunky_png`, which has a faster native library called `oily_png` which will be used if available.
 
     $ sudo gem install oily_png
-    
+
 NOTE: If `ruby-audio` fails to compile and you have `libsndfile` available, it may be because of this: http://stackoverflow.com/questions/19919640/ruby-audio-1-6-1-install-error-with-installed-libsndfile-1-0-25
 
 CLI Usage
@@ -78,7 +78,7 @@ Tests
 =====
 
     $ rake
-    
+
 If you get an error about not being able to find ruby-audio gem (and you have ruby-audio gem) you might need to let rake know how to load your gems -- if you're using rubygems:
 
     $ export RUBYOPT="rubygems"
@@ -88,6 +88,10 @@ Sample sound file used in tests is in the Public Domain from soundbible.com: <ht
 
 Changes
 =======
+
+0.1.3
+-----
+  * Update for ruby 3.2 (replace File.exists? w/ File.exist?)
 
 0.1.2
 -----
