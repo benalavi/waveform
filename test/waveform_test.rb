@@ -21,10 +21,6 @@ class WaveformTest < Test::Unit::TestCase
   include Helpers
   extend Helpers
 
-  def self.output(file)
-    File.join(File.dirname(__FILE__), "output", file)
-  end
-
   def self.cleanup
     puts "Removing existing testing artifacts..."
     Dir[output("*.*")].each{ |f| FileUtils.rm(f) }
