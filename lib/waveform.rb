@@ -83,19 +83,13 @@ class Waveform
       @log = Log.new(options[:logger])
       @log.start!
 
-      if options[:auto_width]
-        RubyAudio::Sound.open(source) do |audio|
-          options[:width] = (audio.info.length * 1000 / options[:auto_width].to_i).ceil
-        end
-      end
-
       # Frames gives the amplitudes for each channel, for our waveform we're
       # saying the "visual" amplitude is the average of the amplitude across all
       # the channels. This might be a little weird w/ the "peak" method if the
       # frames are very wide (i.e. the image width is very small) -- I *think*
       # the larger the frames are, the more "peaky" the waveform should get,
       # perhaps to the point of inaccurately reflecting the actual sound.
-      samples = frames(source, options[:width], options[:method]).collect do |frame|
+      samples = frames(source, options).collect do |frame|
         frame.inject(0.0) { |sum, peak| sum + peak } / frame.size
       end
 
@@ -119,16 +113,22 @@ class Waveform
     # Returns a sampling of frames from the given RubyAudio::Sound using the
     # given method the sample size is determined by the given pixel width --
     # we want one sample frame per horizontal pixel.
-    def frames(source, width, method = :peak)
+    def frames(source, options)
+      method = options[:method] || :peak
       raise ArgumentError.new("Unknown sampling method #{method}") unless [ :peak, :rms ].include?(method)
 
       frames = []
 
       RubyAudio::Sound.open(source) do |audio|
         frames_read = 0
-        frames_per_sample = (audio.info.frames.to_f / width.to_f).to_i
-        sample = RubyAudio::Buffer.new("float", frames_per_sample, audio.info.channels)
+        if options[:auto_width]
+          frames_per_sample = (audio.info.samplerate * options[:auto_width].to_i / 1000)
+          options[:width] = (audio.info.frames.to_f / frames_per_sample).ceil
+        else
+          frames_per_sample = (audio.info.frames.to_f / options[:width].to_f).to_i
+        end
 
+        sample = RubyAudio::Buffer.new("float", frames_per_sample, audio.info.channels)
         @log.timed("Sampling #{frames_per_sample} frames per sample: ") do
           while(frames_read = audio.read(sample)) > 0
             frames << send(method, sample, audio.info.channels)
