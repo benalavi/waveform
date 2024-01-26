@@ -54,6 +54,24 @@ class WaveformTest < Test::Unit::TestCase
     assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
   end
 
+  def test_generates_phonocardiogram_waveform
+    Waveform.generate(fixture("sample.wav"), output("phonocardiogram_sample.png"), :type => :phonocardiogram)
+    assert File.exists?(output("phonocardiogram_sample.png"))
+
+    image = open_png(output("phonocardiogram_sample.png"))
+    assert_not_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
+    assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
+  end
+
+  def test_generates_phonocardiogram_waveform_via_passed_data
+    Waveform.generate(fixture("sample.wav"), output("phonocardiogram_array_sample.png"), :type => :phonocardiogram, :array => [-0.052887, -0.074229, -0.094981, -0.100566, -0.090027, -0.084483, -0.088877, -0.088816, -0.089976, -0.090607, -0.085347, -0.075551, -0.056081, -0.033030, -0.011159, 0.008809, 0.016886, 0.017008])
+    assert File.exists?(output("phonocardiogram_array_sample.png"))
+
+    image = open_png(output("phonocardiogram_array_sample.png"))
+    assert_not_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:color]), image[60, 120]
+    assert_equal ChunkyPNG::Color.from_hex(Waveform::DefaultOptions[:background_color]), image[0, 0]
+  end
+
   def test_logs_to_given_io
     File.open(output("waveform.log"), "w") do |io|
       Waveform.generate(fixture_asset("sample.wav"), output("logged.png"), :logger => io)
